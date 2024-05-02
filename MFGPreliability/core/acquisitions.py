@@ -29,16 +29,14 @@ class AcqIVR_FP(Acq):
         x = np.atleast_2d(x)
         
         K_trans_x = self.model.kernel_(x, self.model.X_train_)
-        K_trans_grid = self.model.kernel_(self.grid, self.model.X_train_)
         
         V_x = solve_triangular(
                 self.model.L_, K_trans_x.T, lower=True, check_finite=False)
-        V_grid = solve_triangular(
-                self.model.L_, K_trans_grid.T, lower=True, check_finite=False)
-        cov_x_grid = self.model.kernel_(x, self.grid) - V_x.T @ V_grid
+        cov_x_grid = self.model.kernel_(x, self.grid) - V_x.T @ self.V_grid
         var_reduction = cov_x_grid ** 2 / ((self.model.predict(x, 
                                                         return_std=True)[1])**2)
         # compute the new exceeding probability of grid
+        # assume the limit is 0
         P = norm.cdf(self.mean / np.sqrt(np.clip(self.std**2 - var_reduction, 
                                                  1e-10, None))) 
         V = P * (1-P)
@@ -63,4 +61,6 @@ class AcqIVR_FP(Acq):
         V = P * (1-P)
         self.U = np.sum(V * self.inputs.weights)
         
-  
+        K_trans_grid = self.model.kernel_(self.grid, self.model.X_train_)
+        self.V_grid = solve_triangular(
+                self.model.L_, K_trans_grid.T, lower=True, check_finite=False)

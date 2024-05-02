@@ -55,7 +55,7 @@ class OptimalDesign(object):
         # train the last model
         self.model.fit(self.DX, self.DY)
         self.model_list.append(copy.deepcopy(self.model))
-
+        
         return self.model_list
         
         
